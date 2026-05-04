@@ -1,7 +1,7 @@
 {
   "name": "Brain Fart",
   "short_name": "Brain Fart",
-  "description": "Paper & Ink idea sketchbook for sparks, materials and production flow.",
+  "description": "Paper & Ink idea sketchbook with in-app drawing canvas.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#efe2c2",

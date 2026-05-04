@@ -22,11 +22,6 @@
     </header>
 
     <main id="screen"></main>
-
-    <nav class="bottom-nav">
-      <button id="homeBtn" class="nav-btn active">Ideas</button>
-      <button id="newBtn" class="nav-btn primary">+ New</button>
-    </nav>
   </div>
 
   <template id="listTemplate">
@@ -35,9 +30,7 @@
         <h2>Ideas</h2>
         <button class="paper-btn" data-action="new">+ Add New Idea</button>
       </div>
-
       <div id="ideasList" class="ideas-list"></div>
-
       <aside id="listSketchPanel" class="paper-panel sketch-panel">
         <div class="panel-title-row">
           <h3>Sketches</h3>
@@ -57,10 +50,7 @@
 
   <template id="ideaRowTemplate">
     <article class="idea-row paper-panel">
-      <div class="thumb">
-        <img alt="" />
-        <span>No sketch</span>
-      </div>
+      <div class="thumb"><img alt="" /><span>No sketch</span></div>
       <div class="idea-row-content">
         <h3></h3>
         <p></p>
@@ -73,14 +63,45 @@
     <section class="screen editor-screen">
       <div class="toolbar">
         <button class="paper-btn ghost" data-action="back">‹ Back</button>
-        <h2 id="editorTitle">Idea</h2>
+        <h2 id="editorTitle">New Idea</h2>
         <button class="paper-btn danger" data-action="delete">Delete</button>
       </div>
 
-      <form id="ideaForm" class="editor-grid">
+      <form id="ideaForm" class="editor-stack">
+        <section class="paper-panel sketch-editor">
+          <div class="panel-title-row">
+            <h3>Sketch</h3>
+            <span id="editorSketchCount">0 / 0</span>
+          </div>
+
+          <div class="draw-tools">
+            <button type="button" class="paper-btn small" data-action="prevSketch">‹ Prev</button>
+            <button type="button" class="paper-btn small" data-action="nextSketch">Next ›</button>
+            <button type="button" class="paper-btn small" data-action="newSketch">+ New Sketch</button>
+            <button type="button" class="paper-btn small" data-action="clearSketch">Clear</button>
+            <button type="button" class="paper-btn small" data-action="markMain">Mark Main</button>
+            <button type="button" class="paper-btn small danger" data-action="removeSketch">Remove</button>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="sketchCanvas" aria-label="Sketch drawing area"></canvas>
+          </div>
+          <p class="canvas-hint">Draw with your finger or mouse. Sketches auto-save.</p>
+        </section>
+
         <label>
           <span>Idea name</span>
           <input id="ideaName" type="text" autocomplete="off" placeholder="Untitled idea" />
+        </label>
+
+        <label>
+          <span>Description</span>
+          <textarea id="description" rows="5" placeholder="Describe the idea..."></textarea>
+        </label>
+
+        <label>
+          <span>Materials</span>
+          <textarea id="materials" rows="4" placeholder="Metals, stones, tools, notes..."></textarea>
         </label>
 
         <label>
@@ -91,43 +112,6 @@
             <option>In Production</option>
           </select>
         </label>
-
-        <label class="full">
-          <span>Description</span>
-          <textarea id="description" rows="5" placeholder="Describe the idea..."></textarea>
-        </label>
-
-        <label class="full">
-          <span>Materials</span>
-          <textarea id="materials" rows="4" placeholder="Metals, stones, tools, notes..."></textarea>
-        </label>
-
-        <section class="paper-panel sketch-editor full">
-          <div class="panel-title-row">
-            <h3>Sketches</h3>
-            <span id="editorSketchCount">0 / 0</span>
-          </div>
-
-          <label id="dropZone" class="drop-zone">
-            <input id="sketchInput" type="file" accept="image/*" multiple hidden />
-            <div>
-              <strong>Tap to add sketches</strong>
-              <span>or drag images here on desktop</span>
-            </div>
-          </label>
-
-          <div class="sketch-frame editor">
-            <img id="editorSketchImg" alt="" />
-            <div id="editorSketchEmpty" class="empty-state">No sketches yet</div>
-          </div>
-
-          <div class="sketch-actions">
-            <button type="button" class="paper-btn" data-action="prevSketch">‹</button>
-            <button type="button" class="paper-btn" data-action="nextSketch">›</button>
-            <button type="button" class="paper-btn" data-action="markMain">Mark Main</button>
-            <button type="button" class="paper-btn danger" data-action="removeSketch">Remove</button>
-          </div>
-        </section>
       </form>
     </section>
   </template>

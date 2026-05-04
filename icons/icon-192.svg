@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#f7ebd0"/>
+  <rect x="24" y="24" width="464" height="464" rx="78" fill="none" stroke="#2b2118" stroke-width="14"/>
+  <path d="M170 161c-25-14-19-56 13-62 12-31 57-35 75-8 25-19 65-4 70 29 32 0 52 36 34 62 19 18 17 51-4 67-15 12-39 13-56 2-23 19-58 18-79-3-24 15-58 6-71-19-31 1-53-31-39-59 9-18 31-25 57-9z" fill="none" stroke="#2b2118" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M251 246c7 33 3 54-16 79m46-78c28 19 44 44 50 76m-13-33c30 0 52 11 66 32" fill="none" stroke="#2b2118" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="380" cy="345" r="16" fill="none" stroke="#2b2118" stroke-width="10"/>
+  <circle cx="421" cy="359" r="12" fill="none" stroke="#2b2118" stroke-width="8"/>
+  <text x="256" y="400" text-anchor="middle" font-family="Georgia, serif" font-weight="900" font-size="68" fill="#2b2118">BRAIN</text>
+  <text x="256" y="454" text-anchor="middle" font-family="Georgia, serif" font-weight="900" font-style="italic" font-size="48" fill="#2b2118">FART</text>
+</svg>

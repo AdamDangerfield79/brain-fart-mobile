@@ -1,0 +1,24 @@
+{
+  "name": "Brain Fart",
+  "short_name": "Brain Fart",
+  "description": "Paper & Ink idea sketchbook for sparks, materials and production flow.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#efe2c2",
+  "theme_color": "#e5d3a3",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

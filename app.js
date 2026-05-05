@@ -1,5 +1,5 @@
-// Brain Fart Mobile Web v0.03 - contains + New Sketch
-const STORAGE_KEY="brainFartPwaIdeas.v003";
+// Brain Fart Mobile Web v0.04 - contains + New Sketch
+const STORAGE_KEY="brainFartPwaIdeas.v004";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
 const screen=document.getElementById("screen");
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
@@ -47,6 +47,7 @@ function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
   screen.replaceChildren(document.getElementById("editorTemplate").content.cloneNode(true));
   const name=document.getElementById("ideaName"),desc=document.getElementById("description"),mat=document.getElementById("materials"),stage=document.getElementById("stage"),canvas=document.getElementById("sketchCanvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+  let undoStack=[];
   name.value=idea.ideaName||"";desc.value=idea.description||"";mat.value=idea.materials||"";stage.value=idea.stage||"Idea";
   function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;upsert(idea);state.selectedIdeaId=idea.id;document.getElementById("editorTitle").textContent=idea.ideaName||"New Idea"}
   function count(){let sk=idea.sketches[state.editorSketchIndex];document.getElementById("editorSketchCount").textContent=`${state.editorSketchIndex+1} / ${idea.sketches.length}${sk?.id===idea.mainSketchId?" · MAIN":""}`}
@@ -54,20 +55,23 @@ function renderEditor(existing=null){
   function loadCanvas(){paper();let sk=idea.sketches[state.editorSketchIndex];if(sk?.dataUrl){let im=new Image();im.onload=()=>{paper();let sc=Math.min(canvas.width/im.width,canvas.height/im.height),w=im.width*sc,h=im.height*sc;ctx.drawImage(im,(canvas.width-w)/2,(canvas.height-h)/2,w,h)};im.src=sk.dataUrl}count()}
   function saveCanvas(){let sk=idea.sketches[state.editorSketchIndex];if(!sk)return;sk.dataUrl=canvas.toDataURL("image/png");if(!idea.mainSketchId)idea.mainSketchId=sk.id;fields()}
   function resize(){let r=canvas.getBoundingClientRect(),d=devicePixelRatio||1;canvas.width=Math.max(600,Math.floor(r.width*d));canvas.height=Math.max(420,Math.floor(r.height*d));loadCanvas()}
+  function snapshot(){try{undoStack.push(canvas.toDataURL("image/png"));if(undoStack.length>25)undoStack.shift()}catch{}}
+  function undo(){let prev=undoStack.pop();if(!prev)return;let im=new Image();im.onload=()=>{paper();let sc=Math.min(canvas.width/im.width,canvas.height/im.height),w=im.width*sc,h=im.height*sc;ctx.drawImage(im,(canvas.width-w)/2,(canvas.height-h)/2,w,h);saveCanvas()};im.src=prev}
   document.getElementById("ideaForm").oninput=fields;stage.onchange=fields;
   screen.querySelector('[data-action="back"]').onclick=()=>{saveCanvas();renderList()};
   screen.querySelector('[data-action="delete"]').onclick=()=>{if(confirm("Delete this idea?")){removeIdea(idea.id);renderList()}};
   screen.querySelector('[data-action="prevSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex-1+idea.sketches.length)%idea.sketches.length;loadCanvas()};
   screen.querySelector('[data-action="nextSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex+1)%idea.sketches.length;loadCanvas()};
   screen.querySelector('[data-action="newSketch"]').onclick=()=>{saveCanvas();addBlankSketch(idea);state.editorSketchIndex=idea.sketches.length-1;loadCanvas();fields()};
+  screen.querySelector('[data-action="undoSketch"]').onclick=()=>undo();
   screen.querySelector('[data-action="clearSketch"]').onclick=()=>{paper();saveCanvas()};
   screen.querySelector('[data-action="markMain"]').onclick=()=>{idea.mainSketchId=idea.sketches[state.editorSketchIndex]?.id;saveCanvas();count()};
   screen.querySelector('[data-action="removeSketch"]').onclick=()=>{if(idea.sketches.length<=1){paper();saveCanvas();return}let sk=idea.sketches[state.editorSketchIndex];idea.sketches.splice(state.editorSketchIndex,1);if(idea.mainSketchId===sk.id)idea.mainSketchId=idea.sketches[0]?.id||null;state.editorSketchIndex=Math.max(0,state.editorSketchIndex-1);loadCanvas();fields()};
   let drawing=false,last=null,timer=null;const p=e=>{let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)}};const soon=()=>{clearTimeout(timer);timer=setTimeout(saveCanvas,300)};
-  canvas.onpointerdown=e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);drawing=true;last=p(e)};
+  canvas.onpointerdown=e=>{e.preventDefault();snapshot();canvas.setPointerCapture(e.pointerId);drawing=true;last=p(e)};
   canvas.onpointermove=e=>{if(!drawing)return;e.preventDefault();let q=p(e);ctx.strokeStyle="#2b2118";ctx.lineWidth=Math.max(4,canvas.width/220);ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(q.x,q.y);ctx.stroke();last=q;soon()};
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=003").catch(()=>{}));
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=004").catch(()=>{}));
 load();renderList();

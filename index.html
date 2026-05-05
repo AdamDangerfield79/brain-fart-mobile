@@ -48,15 +48,16 @@
   <form id="ideaForm" class="editor-stack">
     <section class="paper-panel sketch-editor">
       <div class="panel-title-row"><h3>Sketch</h3><span id="editorSketchCount">0 / 0</span></div>
-      <div class="draw-tools">
-        <button type="button" class="paper-btn small" data-action="prevSketch">‹ Prev</button>
-        <button type="button" class="paper-btn small" data-action="nextSketch">Next ›</button>
-        <button type="button" class="paper-btn small" data-action="newSketch">+ New Sketch</button>
-        <button type="button" class="paper-btn small" data-action="clearSketch">Clear</button>
-        <button type="button" class="paper-btn small" data-action="markMain">Mark Main</button>
-        <button type="button" class="paper-btn small danger" data-action="removeSketch">Remove</button>
-      </div>
       <div class="canvas-wrap"><canvas id="sketchCanvas"></canvas></div>
+      <div class="draw-tools icon-tools" aria-label="Sketch controls">
+        <button type="button" class="paper-btn icon-btn" data-action="prevSketch" title="Previous sketch" aria-label="Previous sketch">‹</button>
+        <button type="button" class="paper-btn icon-btn" data-action="nextSketch" title="Next sketch" aria-label="Next sketch">›</button>
+        <button type="button" class="paper-btn icon-btn" data-action="newSketch" title="New sketch" aria-label="New sketch">＋</button>
+        <button type="button" class="paper-btn icon-btn" data-action="undoSketch" title="Undo" aria-label="Undo">↶</button>
+        <button type="button" class="paper-btn icon-btn" data-action="clearSketch" title="Clear sketch" aria-label="Clear sketch">⌫</button>
+        <button type="button" class="paper-btn icon-btn" data-action="markMain" title="Mark as main sketch" aria-label="Mark as main sketch">★</button>
+        <button type="button" class="paper-btn icon-btn danger" data-action="removeSketch" title="Remove sketch" aria-label="Remove sketch">×</button>
+      </div>
       <p class="hint">Draw with your finger or mouse. Sketches auto-save.</p>
     </section>
 
@@ -68,6 +69,6 @@
 </section>
 </template>
 
-<script src="app.js?v=003"></script>
+<script src="app.js?v=004"></script>
 </body>
 </html>

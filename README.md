@@ -1,9 +1,8 @@
-# Brain Fart Mobile Web v0.02
+Brain Fart Mobile Web v0.03
 
-Changes:
-- Removed the bottom Ideas/New buttons.
-- New/Edit Idea screen order is now Sketch, Idea name, Description, Materials, Stage.
-- Sketch is now an actual drawing canvas with previous/next sketch navigation.
-- Includes New Sketch, Clear, Mark Main, and Remove.
+Verified:
+- '+ New Sketch' appears in index.html and app.js.
+- No bottom Ideas/New navigation.
+- New/Edit order is Sketch, Idea name, Description, Materials, Stage.
 
-Upload these files to GitHub Pages with `index.html` at repository root.
+Upload the CONTENTS of this folder to the ROOT of your GitHub repo.

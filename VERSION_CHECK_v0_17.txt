@@ -1,6 +1,0 @@
-Brain Fart Mobile Web v0.17
-
-Verified fixes:
-- Camera button now uses the same sizing/alignment rules as other icon buttons.
-- Camera button is inline with the other controls.
-- Cache busting updated to v017.

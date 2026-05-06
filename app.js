@@ -35,40 +35,10 @@ function renderList(){
 }
 
 
-
-function fileToSketchDataUrl(file){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onerror=()=>reject(reader.error);
-    reader.onload=()=>{
-      const img=new Image();
-      img.onerror=reject;
-      img.onload=()=>{
-        const max=1600;let w=img.width,h=img.height;
-        if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s)}
-        const c=document.createElement("canvas");c.width=w;c.height=h;
-        const x=c.getContext("2d");x.fillStyle="#ffffff";x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
-        resolve(c.toDataURL("image/jpeg",0.88));
-      };
-      img.src=reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-async function addPhotoAsSketch(file,idea){
-  if(!file||!file.type||!file.type.startsWith("image/"))return false;
-  const dataUrl=await fileToSketchDataUrl(file);
-  const sketch={id:uid(),kind:"photo",dataUrl,addedAt:new Date().toISOString()};
-  idea.sketches.push(sketch);
-  if(!idea.mainSketchId)idea.mainSketchId=sketch.id;
-  state.editorSketchIndex=idea.sketches.length-1;
-  return true;
-}
 function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
   screen.replaceChildren(document.getElementById("editorTemplate").content.cloneNode(true));
   const name=document.getElementById("ideaName"),desc=document.getElementById("description"),mat=document.getElementById("materials"),stage=document.getElementById("stage"),canvas=document.getElementById("sketchCanvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
-  const cameraInput=document.getElementById("cameraInput");
   let undoStack=[];
   name.value=idea.ideaName||"";desc.value=idea.description||"";mat.value=idea.materials||"";stage.value=idea.stage||"Idea";
   function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;upsert(idea);state.selectedIdeaId=idea.id;document.getElementById("editorTitle").textContent=idea.ideaName||"New Idea"}
@@ -86,9 +56,8 @@ function renderEditor(existing=null){
   screen.querySelector('[data-action="prevSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex-1+idea.sketches.length)%idea.sketches.length;undoStack=[];loadCanvas()};
   screen.querySelector('[data-action="nextSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex+1)%idea.sketches.length;undoStack=[];loadCanvas()};
   screen.querySelector('[data-action="newSketch"]').onclick=()=>{saveCanvas();addBlankSketch(idea);state.editorSketchIndex=idea.sketches.length-1;undoStack=[];loadCanvas();fields()};
-  screen.querySelector('[data-action="photoSketch"]').onclick=()=>cameraInput.click();
-  cameraInput.onchange=async()=>{const file=cameraInput.files&&cameraInput.files[0];if(!file)return;saveCanvas();const added=await addPhotoAsSketch(file,idea);cameraInput.value="";if(added){undoStack=[];loadCanvas();fields();}};
   screen.querySelector('[data-action="undoSketch"]').onclick=()=>undoSketch();
+  screen.querySelector('[data-action="clearSketch"]').onclick=()=>{snapshot();paper();saveCanvas()};
   screen.querySelector('[data-action="markMain"]').onclick=()=>{idea.mainSketchId=idea.sketches[state.editorSketchIndex]?.id;saveCanvas();count()};
   screen.querySelector('[data-action="removeSketch"]').onclick=()=>{if(idea.sketches.length<=1){snapshot();paper();saveCanvas();return}let sk=idea.sketches[state.editorSketchIndex];idea.sketches.splice(state.editorSketchIndex,1);if(idea.mainSketchId===sk.id)idea.mainSketchId=idea.sketches[0]?.id||null;state.editorSketchIndex=Math.max(0,state.editorSketchIndex-1);undoStack=[];loadCanvas();fields()};
   let drawing=false,last=null,timer=null;const p=e=>{let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)}};const soon=()=>{clearTimeout(timer);timer=setTimeout(saveCanvas,300)};
@@ -97,5 +66,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=015").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=010").catch(()=>{}))}
 load();renderList();

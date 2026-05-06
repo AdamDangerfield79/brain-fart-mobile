@@ -86,4 +86,13 @@ canvas{display:block;width:100%;height:100%;touch-action:none;background:#fff}
 .hint{color:var(--muted);font-style:italic;margin:8px 0 0;text-align:center}
 @media(min-width:820px){.list-screen{grid-template-columns:1fr}.draw-tools.icon-tools{max-width:520px;margin-left:auto;margin-right:auto}}
 
-.temp-white-btn{width:100%;margin-top:10px;border:1.5px dashed var(--line);border-radius:12px;background:#fff;color:var(--muted);padding:10px 12px;font-family:Arial,sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+
+.app-version{
+  padding:22px 14px 28px;
+  text-align:center;
+  color:var(--muted);
+  font-family:Arial,sans-serif;
+  font-size:.72rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+}

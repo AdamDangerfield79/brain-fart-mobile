@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v0.09 PINK
+// Brain Fart Mobile Web v0.10 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -29,91 +29,11 @@ function renderList(){
     row.querySelector("h3").textContent=idea.ideaName||"Untitled idea";
     row.querySelector("p").textContent=idea.description||"";
     row.querySelector("small").textContent=idea.stage||"Idea";
-    row.onclick=()=>{state.selectedIdeaId=idea.id;state.listSketchIndex=0;renderList()};
-    row.ondblclick=()=>renderEditor(idea);
+    row.onclick=()=>renderEditor(idea);
     list.appendChild(row)
   }
 }
 
-
-function recolourSketchToPinkOnWhite(dataUrl){
-  return new Promise(resolve=>{
-    if(!dataUrl){resolve(dataUrl);return}
-    const img=new Image();
-    img.onload=()=>{
-      const c=document.createElement("canvas");
-      c.width=img.width;
-      c.height=img.height;
-      const x=c.getContext("2d",{willReadFrequently:true});
-
-      // Draw original first, then inspect every pixel.
-      x.drawImage(img,0,0);
-      const imageData=x.getImageData(0,0,c.width,c.height);
-      const d=imageData.data;
-
-      for(let i=0;i<d.length;i+=4){
-        const r=d[i], g=d[i+1], b=d[i+2], a=d[i+3];
-        if(a<8){
-          // Transparent pixels become white background.
-          d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=255;
-          continue;
-        }
-
-        const brightness=(r+g+b)/3;
-        const chroma=Math.max(r,g,b)-Math.min(r,g,b);
-
-        // Parchment/cream/light background pixels -> pure white.
-        // This catches old #fff7e6 style canvas backgrounds and antialiasing.
-        if(brightness>165 && chroma<75){
-          d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=255;
-          continue;
-        }
-
-        // Dark/black/grey drawing pixels -> app pink.
-        // Preserve alpha and use stronger pink for darker source pixels.
-        if(brightness<175){
-          d[i]=232; d[i+1]=63; d[i+2]=124;
-          d[i+3]=Math.max(a,210);
-          continue;
-        }
-
-        // Any leftover low-saturation beige/pale pixels -> white.
-        if(chroma<55){
-          d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=255;
-        }
-      }
-
-      x.putImageData(imageData,0,0);
-      resolve(c.toDataURL("image/png"));
-    };
-    img.onerror=()=>resolve(dataUrl);
-    img.src=dataUrl;
-  });
-}
-
-async function convertAllSketchBackgroundsWhite(){
-  let changed=0;
-
-  for(const idea of state.ideas){
-    for(const sketch of (idea.sketches||[])){
-      if(sketch.dataUrl){
-        sketch.dataUrl=await recolourSketchToPinkOnWhite(sketch.dataUrl);
-        changed++;
-      }
-    }
-  }
-
-  if(state.editingIdea){
-    for(const sketch of (state.editingIdea.sketches||[])){
-      if(sketch.dataUrl){
-        sketch.dataUrl=await recolourSketchToPinkOnWhite(sketch.dataUrl);
-      }
-    }
-  }
-
-  save();
-  alert(`Updated ${changed} saved sketch image${changed===1?"":"s"}: white background + pink lines.`);
-}
 
 function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
@@ -140,12 +60,11 @@ function renderEditor(existing=null){
   screen.querySelector('[data-action="clearSketch"]').onclick=()=>{snapshot();paper();saveCanvas()};
   screen.querySelector('[data-action="markMain"]').onclick=()=>{idea.mainSketchId=idea.sketches[state.editorSketchIndex]?.id;saveCanvas();count()};
   screen.querySelector('[data-action="removeSketch"]').onclick=()=>{if(idea.sketches.length<=1){snapshot();paper();saveCanvas();return}let sk=idea.sketches[state.editorSketchIndex];idea.sketches.splice(state.editorSketchIndex,1);if(idea.mainSketchId===sk.id)idea.mainSketchId=idea.sketches[0]?.id||null;state.editorSketchIndex=Math.max(0,state.editorSketchIndex-1);undoStack=[];loadCanvas();fields()};
-  screen.querySelector('[data-action="whiteBackfill"]').onclick=async()=>{saveCanvas();await convertAllSketchBackgroundsWhite();loadCanvas()};
   let drawing=false,last=null,timer=null;const p=e=>{let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)}};const soon=()=>{clearTimeout(timer);timer=setTimeout(saveCanvas,300)};
   canvas.onpointerdown=e=>{e.preventDefault();snapshot();canvas.setPointerCapture(e.pointerId);drawing=true;last=p(e)};
   canvas.onpointermove=e=>{if(!drawing)return;e.preventDefault();let q=p(e);ctx.strokeStyle="#e83f7c";ctx.lineWidth=Math.max(4,canvas.width/220);ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(q.x,q.y);ctx.stroke();last=q;soon()};
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=009").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=010").catch(()=>{}))}
 load();renderList();

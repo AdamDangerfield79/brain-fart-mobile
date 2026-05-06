@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#fff8fa">
-  <title>Brain Fart v0.14 PINK</title>
+  <title>Brain Fart v1.00 PINK</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=010">
+  <link rel="stylesheet" href="styles.css?v=100">
 </head>
 <body>
   <header class="topbar">
@@ -69,7 +69,13 @@
             <button type="button" class="icon-button" data-action="nextSketch" title="Next sketch">›</button>
             <button type="button" class="icon-button" data-action="newSketch" title="New sketch">＋</button>
             <button type="button" class="icon-button" data-action="undoSketch" title="Undo">↶</button>
-            <button type="button" class="icon-button" data-action="clearSketch" title="Clear">⌫</button>
+            <button type="button" class="icon-button camera-button" data-action="cameraSketch" title="Take photo" aria-label="Take photo">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h4l1.5-2h5L16 7h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              </svg>
+            </button>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
             <button type="button" class="icon-button" data-action="markMain" title="Mark main">★</button>
             <button type="button" class="icon-button danger-icon" data-action="removeSketch" title="Remove">×</button>
           </div>
@@ -84,7 +90,7 @@
     </section>
   </template>
 
-  <footer class="app-version">v0.14 pink</footer>
-  <script src="app.js?v=010"></script>
+  <footer class="app-version">v1.00 pink</footer>
+  <script src="app.js?v=100"></script>
 </body>
 </html>

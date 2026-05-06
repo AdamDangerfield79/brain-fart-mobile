@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v0.10 PINK
+// Brain Fart Mobile Web v1.00 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -57,7 +57,25 @@ function renderEditor(existing=null){
   screen.querySelector('[data-action="nextSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex+1)%idea.sketches.length;undoStack=[];loadCanvas()};
   screen.querySelector('[data-action="newSketch"]').onclick=()=>{saveCanvas();addBlankSketch(idea);state.editorSketchIndex=idea.sketches.length-1;undoStack=[];loadCanvas();fields()};
   screen.querySelector('[data-action="undoSketch"]').onclick=()=>undoSketch();
-  screen.querySelector('[data-action="clearSketch"]').onclick=()=>{snapshot();paper();saveCanvas()};
+  const cameraInput=document.getElementById("cameraInput");
+  screen.querySelector('[data-action="cameraSketch"]').onclick=()=>cameraInput.click();
+  cameraInput.onchange=e=>{
+    const file=e.target.files?.[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=evt=>{
+      saveCanvas();
+      let sk={id:uid(),kind:"photo",dataUrl:evt.target.result,addedAt:new Date().toISOString()};
+      idea.sketches.push(sk);
+      state.editorSketchIndex=idea.sketches.length-1;
+      if(!idea.mainSketchId)idea.mainSketchId=sk.id;
+      undoStack=[];
+      loadCanvas();
+      fields();
+      cameraInput.value="";
+    };
+    reader.readAsDataURL(file);
+  };
   screen.querySelector('[data-action="markMain"]').onclick=()=>{idea.mainSketchId=idea.sketches[state.editorSketchIndex]?.id;saveCanvas();count()};
   screen.querySelector('[data-action="removeSketch"]').onclick=()=>{if(idea.sketches.length<=1){snapshot();paper();saveCanvas();return}let sk=idea.sketches[state.editorSketchIndex];idea.sketches.splice(state.editorSketchIndex,1);if(idea.mainSketchId===sk.id)idea.mainSketchId=idea.sketches[0]?.id||null;state.editorSketchIndex=Math.max(0,state.editorSketchIndex-1);undoStack=[];loadCanvas();fields()};
   let drawing=false,last=null,timer=null;const p=e=>{let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)}};const soon=()=>{clearTimeout(timer);timer=setTimeout(saveCanvas,300)};
@@ -66,5 +84,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=010").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=100").catch(()=>{}))}
 load();renderList();

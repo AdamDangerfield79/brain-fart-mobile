@@ -1,1 +1,0 @@
-This build is v0.03. Search app.js for '+ New Sketch'. It is present.

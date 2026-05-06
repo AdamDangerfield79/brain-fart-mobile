@@ -1,8 +1,0 @@
-Brain Fart Mobile Web v0.08
-
-Verified:
-- App icon is brain-only option 1 style, no text.
-- Large Sketches panel removed from List view.
-- Temporary white-background conversion button added under Sketch box in editor.
-- Storage key is still brainFartPwaIdeas.v005 so existing data is preserved.
-- Cache busting uses v008.

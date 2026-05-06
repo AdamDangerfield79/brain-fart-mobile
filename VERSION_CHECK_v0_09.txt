@@ -1,9 +1,0 @@
-Brain Fart Mobile Web v0.09
-
-Fix:
-- Temporary conversion now processes pixels.
-- Parchment/cream sketch backgrounds become white.
-- Black/dark sketch lines become pink.
-- Storage key unchanged so data remains.
-
-Upload root files to GitHub and use the temporary button again.

@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v1.00 PINK
+// Brain Fart Mobile Web v1.02 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -9,6 +9,7 @@ const save=()=>localStorage.setItem(STORAGE_KEY,JSON.stringify(state.ideas));
 const clone=o=>JSON.parse(JSON.stringify(o));
 const mainSketch=i=>!i?.sketches?.length?null:(i.sketches.find(s=>s.id===i.mainSketchId)||i.sketches[0]);
 const selected=()=>state.ideas.find(i=>i.id===state.selectedIdeaId)||null;
+const forceEditorTitle=()=>{const t=document.getElementById("editorTitle");if(t)t.textContent="IDEA"};
 function upsert(idea){let n=state.ideas.findIndex(i=>i.id===idea.id);if(n<0)state.ideas.push(idea);else state.ideas[n]=idea;save()}
 function removeIdea(id){state.ideas=state.ideas.filter(i=>i.id!==id);save();state.selectedIdeaId=state.ideas[0]?.id||null}
 function newIdea(){return{id:uid(),ideaName:"",description:"",materials:"",stage:"Idea",sketches:[],mainSketchId:null}}
@@ -37,12 +38,12 @@ function renderList(){
 
 function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
-  screen.replaceChildren(document.getElementById("editorTemplate").content.cloneNode(true));
+  screen.replaceChildren(document.getElementById("editorTemplate").content.cloneNode(true));forceEditorTitle();
   const name=document.getElementById("ideaName"),desc=document.getElementById("description"),mat=document.getElementById("materials"),stage=document.getElementById("stage"),canvas=document.getElementById("sketchCanvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
   let undoStack=[];
   name.value=idea.ideaName||"";desc.value=idea.description||"";mat.value=idea.materials||"";stage.value=idea.stage||"Idea";
-  function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;upsert(idea);state.selectedIdeaId=idea.id;document.getElementById("editorTitle").textContent="IDEA"}
-  function count(){let sk=idea.sketches[state.editorSketchIndex];document.getElementById("editorSketchCount").textContent=`${state.editorSketchIndex+1} / ${idea.sketches.length}${sk?.id===idea.mainSketchId?" · MAIN":""}`}
+  function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;upsert(idea);state.selectedIdeaId=idea.id;forceEditorTitle()}
+  function count(){let sk=idea.sketches[state.editorSketchIndex];document.getElementById("editorSketchCount").textContent=`${state.editorSketchIndex+1} / ${idea.sketches.length}${sk?.id===idea.mainSketchId?" · MAIN":""}`;forceEditorTitle()}
   function paper(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height)}
   function drawImageFit(dataUrl){if(!dataUrl){paper();count();return}let im=new Image();im.onload=()=>{paper();let sc=Math.min(canvas.width/im.width,canvas.height/im.height),w=im.width*sc,h=im.height*sc;ctx.drawImage(im,(canvas.width-w)/2,(canvas.height-h)/2,w,h);count()};im.src=dataUrl}
   function loadCanvas(){let sk=idea.sketches[state.editorSketchIndex];drawImageFit(sk?.dataUrl||"");count()}
@@ -84,5 +85,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=100").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=102").catch(()=>{}))}
 load();renderList();

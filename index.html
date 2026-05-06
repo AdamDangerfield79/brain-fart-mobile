@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#fff8fa">
-  <title>Brain Fart v0.14 PINK</title>
+  <title>Brain Fart v0.15 PINK</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=010">
+  <link rel="stylesheet" href="styles.css?v=015">
 </head>
 <body>
   <header class="topbar">
@@ -63,16 +63,17 @@
           <div class="canvas-wrap">
             <canvas id="sketchCanvas"></canvas>
           </div>
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
 
           <div class="draw-tools icon-tools" aria-label="Sketch controls">
             <button type="button" class="icon-button" data-action="prevSketch" title="Previous sketch">‹</button>
             <button type="button" class="icon-button" data-action="nextSketch" title="Next sketch">›</button>
             <button type="button" class="icon-button" data-action="newSketch" title="New sketch">＋</button>
             <button type="button" class="icon-button" data-action="undoSketch" title="Undo">↶</button>
-            <button type="button" class="icon-button" data-action="clearSketch" title="Clear">⌫</button>
             <button type="button" class="icon-button" data-action="markMain" title="Mark main">★</button>
             <button type="button" class="icon-button danger-icon" data-action="removeSketch" title="Remove">×</button>
           </div>
+          <button type="button" class="photo-sketch-btn" data-action="photoSketch" title="Take photo" aria-label="Take photo">📷</button>
 
         </section>
 
@@ -84,7 +85,7 @@
     </section>
   </template>
 
-  <footer class="app-version">v0.14 pink</footer>
-  <script src="app.js?v=010"></script>
+  <footer class="app-version">v0.15 pink</footer>
+  <script src="app.js?v=015"></script>
 </body>
 </html>

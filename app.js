@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v0.07 PINK
+// Brain Fart Mobile Web v0.08 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -33,15 +33,38 @@ function renderList(){
     row.ondblclick=()=>renderEditor(idea);
     list.appendChild(row)
   }
-  screen.querySelector('[data-action="prevListSketch"]').onclick=()=>{let i=selected();if(!i?.sketches?.length)return;state.listSketchIndex=(state.listSketchIndex-1+i.sketches.length)%i.sketches.length;updateListSketch()};
-  screen.querySelector('[data-action="nextListSketch"]').onclick=()=>{let i=selected();if(!i?.sketches?.length)return;state.listSketchIndex=(state.listSketchIndex+1)%i.sketches.length;updateListSketch()};
-  updateListSketch()
 }
-function updateListSketch(){
-  const img=document.getElementById("listSketchImg"),empty=document.getElementById("listSketchEmpty"),count=document.getElementById("listSketchCount"),idea=selected();
-  if(!idea?.sketches?.length){img.style.display="none";empty.style.display="block";empty.textContent=idea?"No sketches yet":"Select an idea";count.textContent="0 / 0";return}
-  state.listSketchIndex=Math.max(0,Math.min(state.listSketchIndex,idea.sketches.length-1));
-  const sk=idea.sketches[state.listSketchIndex];img.src=sk.dataUrl;img.style.display="block";empty.style.display="none";count.textContent=`${state.listSketchIndex+1} / ${idea.sketches.length}${sk.id===idea.mainSketchId?" · MAIN":""}`
+
+function makeSketchWhite(dataUrl){
+  return new Promise(resolve=>{
+    if(!dataUrl){resolve(dataUrl);return}
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas");
+      c.width=img.width;c.height=img.height;
+      const x=c.getContext("2d");
+      x.fillStyle="#ffffff";x.fillRect(0,0,c.width,c.height);
+      x.drawImage(img,0,0);
+      resolve(c.toDataURL("image/png"));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+async function convertAllSketchBackgroundsWhite(){
+  let changed=0;
+  for(const idea of state.ideas){
+    for(const sketch of (idea.sketches||[])){
+      if(sketch.dataUrl){sketch.dataUrl=await makeSketchWhite(sketch.dataUrl);changed++}
+    }
+  }
+  if(state.editingIdea){
+    for(const sketch of (state.editingIdea.sketches||[])){
+      if(sketch.dataUrl){sketch.dataUrl=await makeSketchWhite(sketch.dataUrl)}
+    }
+  }
+  save();
+  alert(`Updated ${changed} saved sketch image${changed===1?"":"s"} to white backgrounds.`);
 }
 function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
@@ -68,11 +91,12 @@ function renderEditor(existing=null){
   screen.querySelector('[data-action="clearSketch"]').onclick=()=>{snapshot();paper();saveCanvas()};
   screen.querySelector('[data-action="markMain"]').onclick=()=>{idea.mainSketchId=idea.sketches[state.editorSketchIndex]?.id;saveCanvas();count()};
   screen.querySelector('[data-action="removeSketch"]').onclick=()=>{if(idea.sketches.length<=1){snapshot();paper();saveCanvas();return}let sk=idea.sketches[state.editorSketchIndex];idea.sketches.splice(state.editorSketchIndex,1);if(idea.mainSketchId===sk.id)idea.mainSketchId=idea.sketches[0]?.id||null;state.editorSketchIndex=Math.max(0,state.editorSketchIndex-1);undoStack=[];loadCanvas();fields()};
+  screen.querySelector('[data-action="whiteBackfill"]').onclick=async()=>{saveCanvas();await convertAllSketchBackgroundsWhite();loadCanvas()};
   let drawing=false,last=null,timer=null;const p=e=>{let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)}};const soon=()=>{clearTimeout(timer);timer=setTimeout(saveCanvas,300)};
   canvas.onpointerdown=e=>{e.preventDefault();snapshot();canvas.setPointerCapture(e.pointerId);drawing=true;last=p(e)};
   canvas.onpointermove=e=>{if(!drawing)return;e.preventDefault();let q=p(e);ctx.strokeStyle="#e83f7c";ctx.lineWidth=Math.max(4,canvas.width/220);ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(q.x,q.y);ctx.stroke();last=q;soon()};
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=007").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=008").catch(()=>{}))}
 load();renderList();

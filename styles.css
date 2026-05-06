@@ -98,3 +98,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none;background:#fff}
 }
 
 .camera-button svg{width:1.3rem;height:1.3rem;display:block;margin:auto}
+
+.photo-source-sheet{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center;padding:1.2rem}
+.photo-source-card{width:min(420px,100%);background:#fff8fa;border:2px solid #f5b7cc;border-radius:24px;box-shadow:0 12px 32px rgba(76,27,43,.2);padding:.7rem;display:grid;gap:.55rem}
+.photo-source-card button{font:800 1rem/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#e83f7c;background:#fff;border:2px solid #f5b7cc;border-radius:18px;padding:1rem}
+.photo-source-card button:active{transform:scale(.98)}

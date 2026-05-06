@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v1.03 PINK
+// Brain Fart Mobile Web v1.04 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -58,10 +58,8 @@ function renderEditor(existing=null){
   screen.querySelector('[data-action="nextSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex+1)%idea.sketches.length;undoStack=[];loadCanvas()};
   screen.querySelector('[data-action="newSketch"]').onclick=()=>{saveCanvas();addBlankSketch(idea);state.editorSketchIndex=idea.sketches.length-1;undoStack=[];loadCanvas();fields()};
   screen.querySelector('[data-action="undoSketch"]').onclick=()=>undoSketch();
-  const cameraInput=document.getElementById("cameraInput");
-  screen.querySelector('[data-action="cameraSketch"]').onclick=()=>cameraInput.click();
-  cameraInput.onchange=e=>{
-    const file=e.target.files?.[0];
+  const cameraInput=document.getElementById("cameraInput"), photoLibraryInput=document.getElementById("photoLibraryInput");
+  function addPhotoFile(file,input){
     if(!file)return;
     const reader=new FileReader();
     reader.onload=evt=>{
@@ -73,10 +71,26 @@ function renderEditor(existing=null){
       undoStack=[];
       loadCanvas();
       fields();
-      cameraInput.value="";
+      input.value="";
     };
     reader.readAsDataURL(file);
-  };
+  }
+  function choosePhotoSource(){
+    const sheet=document.createElement("div");
+    sheet.className="photo-source-sheet";
+    sheet.innerHTML='<div class="photo-source-card"><button type="button" data-source="camera">Take new photo</button><button type="button" data-source="library">Choose existing photo</button><button type="button" data-source="cancel">Cancel</button></div>';
+    sheet.onclick=e=>{
+      const source=e.target?.dataset?.source;
+      if(!source)return;
+      sheet.remove();
+      if(source==="camera")cameraInput.click();
+      if(source==="library")photoLibraryInput.click();
+    };
+    document.body.appendChild(sheet);
+  }
+  screen.querySelector('[data-action="cameraSketch"]').onclick=choosePhotoSource;
+  cameraInput.onchange=e=>addPhotoFile(e.target.files?.[0],cameraInput);
+  photoLibraryInput.onchange=e=>addPhotoFile(e.target.files?.[0],photoLibraryInput);
   screen.querySelector('[data-action="markMain"]').onclick=()=>{idea.mainSketchId=idea.sketches[state.editorSketchIndex]?.id;saveCanvas();count()};
   screen.querySelector('[data-action="removeSketch"]').onclick=()=>{if(idea.sketches.length<=1){snapshot();paper();saveCanvas();return}let sk=idea.sketches[state.editorSketchIndex];idea.sketches.splice(state.editorSketchIndex,1);if(idea.mainSketchId===sk.id)idea.mainSketchId=idea.sketches[0]?.id||null;state.editorSketchIndex=Math.max(0,state.editorSketchIndex-1);undoStack=[];loadCanvas();fields()};
   let drawing=false,last=null,timer=null;const p=e=>{let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)}};const soon=()=>{clearTimeout(timer);timer=setTimeout(saveCanvas,300)};
@@ -85,5 +99,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=103").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=104").catch(()=>{}))}
 load();renderList();

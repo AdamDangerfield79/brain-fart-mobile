@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#fff8fa">
-  <title>Brain Fart v1.03 PINK</title>
+  <title>Brain Fart v1.04 PINK</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=103">
+  <link rel="stylesheet" href="styles.css?v=104">
 </head>
 <body>
   <header class="topbar">
@@ -75,7 +75,8 @@
                 <circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
               </svg>
             </button>
-            <input type="file" id="cameraInput" accept="image/*" hidden>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+            <input type="file" id="photoLibraryInput" accept="image/*" hidden>
             <button type="button" class="icon-button" data-action="markMain" title="Mark main">★</button>
             <button type="button" class="icon-button danger-icon" data-action="removeSketch" title="Remove">×</button>
           </div>
@@ -90,7 +91,7 @@
     </section>
   </template>
 
-  <footer class="app-version">v1.03 pink</footer>
-  <script src="app.js?v=103"></script>
+  <footer class="app-version">v1.04 pink</footer>
+  <script src="app.js?v=104"></script>
 </body>
 </html>

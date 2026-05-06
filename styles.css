@@ -97,10 +97,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none;background:#fff}
   text-transform:uppercase;
 }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 47881b745c9c5ac3ae60cd69b23dc9a48f603a52
 
 
 .camera-icon-btn svg{
@@ -117,10 +113,3 @@ canvas{display:block;width:100%;height:100%;touch-action:none;background:#fff}
   stroke-linecap:round;
   stroke-linejoin:round;
 }
-<<<<<<< HEAD
-=======
-=======
-.photo-sketch-btn{width:100%;margin-top:10px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--pink);padding:11px 0;font-size:1.35rem;line-height:1;box-shadow:0 8px 20px var(--shadow)}
-.photo-sketch-btn:active{transform:translateY(1px)}
->>>>>>> 197253f9fa7fa951db00de42a048eb449ab4105a
->>>>>>> 47881b745c9c5ac3ae60cd69b23dc9a48f603a52

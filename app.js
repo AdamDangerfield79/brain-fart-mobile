@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v0.08 PINK
+// Brain Fart Mobile Web v0.09 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -35,37 +35,86 @@ function renderList(){
   }
 }
 
-function makeSketchWhite(dataUrl){
+
+function recolourSketchToPinkOnWhite(dataUrl){
   return new Promise(resolve=>{
     if(!dataUrl){resolve(dataUrl);return}
     const img=new Image();
     img.onload=()=>{
       const c=document.createElement("canvas");
-      c.width=img.width;c.height=img.height;
-      const x=c.getContext("2d");
-      x.fillStyle="#ffffff";x.fillRect(0,0,c.width,c.height);
+      c.width=img.width;
+      c.height=img.height;
+      const x=c.getContext("2d",{willReadFrequently:true});
+
+      // Draw original first, then inspect every pixel.
       x.drawImage(img,0,0);
+      const imageData=x.getImageData(0,0,c.width,c.height);
+      const d=imageData.data;
+
+      for(let i=0;i<d.length;i+=4){
+        const r=d[i], g=d[i+1], b=d[i+2], a=d[i+3];
+        if(a<8){
+          // Transparent pixels become white background.
+          d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=255;
+          continue;
+        }
+
+        const brightness=(r+g+b)/3;
+        const chroma=Math.max(r,g,b)-Math.min(r,g,b);
+
+        // Parchment/cream/light background pixels -> pure white.
+        // This catches old #fff7e6 style canvas backgrounds and antialiasing.
+        if(brightness>165 && chroma<75){
+          d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=255;
+          continue;
+        }
+
+        // Dark/black/grey drawing pixels -> app pink.
+        // Preserve alpha and use stronger pink for darker source pixels.
+        if(brightness<175){
+          d[i]=232; d[i+1]=63; d[i+2]=124;
+          d[i+3]=Math.max(a,210);
+          continue;
+        }
+
+        // Any leftover low-saturation beige/pale pixels -> white.
+        if(chroma<55){
+          d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=255;
+        }
+      }
+
+      x.putImageData(imageData,0,0);
       resolve(c.toDataURL("image/png"));
     };
     img.onerror=()=>resolve(dataUrl);
     img.src=dataUrl;
   });
 }
+
 async function convertAllSketchBackgroundsWhite(){
   let changed=0;
+
   for(const idea of state.ideas){
     for(const sketch of (idea.sketches||[])){
-      if(sketch.dataUrl){sketch.dataUrl=await makeSketchWhite(sketch.dataUrl);changed++}
+      if(sketch.dataUrl){
+        sketch.dataUrl=await recolourSketchToPinkOnWhite(sketch.dataUrl);
+        changed++;
+      }
     }
   }
+
   if(state.editingIdea){
     for(const sketch of (state.editingIdea.sketches||[])){
-      if(sketch.dataUrl){sketch.dataUrl=await makeSketchWhite(sketch.dataUrl)}
+      if(sketch.dataUrl){
+        sketch.dataUrl=await recolourSketchToPinkOnWhite(sketch.dataUrl);
+      }
     }
   }
+
   save();
-  alert(`Updated ${changed} saved sketch image${changed===1?"":"s"} to white backgrounds.`);
+  alert(`Updated ${changed} saved sketch image${changed===1?"":"s"}: white background + pink lines.`);
 }
+
 function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
   screen.replaceChildren(document.getElementById("editorTemplate").content.cloneNode(true));
@@ -98,5 +147,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=008").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=009").catch(()=>{}))}
 load();renderList();

@@ -1,5 +1,5 @@
-const CACHE_NAME="brain-fart-mobile-web-v1-02";
-const ASSETS=["./","./index.html","./styles.css?v=102","./app.js?v=102","./manifest.json","./icons/brain-pink-v08a-192.svg","./icons/brain-pink-v08a-512.svg"];
+const CACHE_NAME="brain-fart-mobile-web-v1-03";
+const ASSETS=["./","./index.html","./styles.css?v=103","./app.js?v=103","./manifest.json","./icons/brain-pink-v08a-192.svg","./icons/brain-pink-v08a-512.svg"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));self.clients.claim()});
 self.addEventListener("fetch",e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));

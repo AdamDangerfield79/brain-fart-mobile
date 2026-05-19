@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v1.08 PINK
+// Brain Fart Mobile Web v1.09 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0,expandedFolders:{}};
@@ -12,6 +12,7 @@ const selected=()=>state.ideas.find(i=>i.id===state.selectedIdeaId)||null;
 const forceEditorTitle=()=>{const t=document.getElementById("editorTitle");if(t)t.textContent="IDEA"};
 function upsert(idea){let n=state.ideas.findIndex(i=>i.id===idea.id);if(n<0)state.ideas.push(idea);else state.ideas[n]=idea;save()}
 function removeIdea(id){state.ideas=state.ideas.filter(i=>i.id!==id);save();state.selectedIdeaId=state.ideas[0]?.id||null}
+function deleteFolder(folder){const name=(folder||"").trim();if(!name)return;state.ideas.forEach(i=>{if((i.folderName||"").trim()===name)i.folderName=""});delete state.expandedFolders[name];save();renderList()}
 function newIdea(){return{id:uid(),ideaName:"",description:"",materials:"",stage:"Idea",folderName:"",sketches:[],mainSketchId:null}}
 function addBlankSketch(idea){let s={id:uid(),kind:"drawing",dataUrl:"",addedAt:new Date().toISOString()};idea.sketches.push(s);if(!idea.mainSketchId)idea.mainSketchId=s.id;return s}
 
@@ -43,7 +44,11 @@ function renderList(){
     header.className="folder-header";
     const expanded=!!state.expandedFolders[folder];
     header.innerHTML=`<span>${folder}</span><small>${folderIdeas.length} idea${folderIdeas.length===1?"":"s"}</small><strong>${expanded?"−":"+"}</strong>`;
-    header.onclick=()=>{state.expandedFolders[folder]=!expanded;renderList()};
+    let folderPressTimer=null, folderLongPressed=false;
+    const clearFolderPress=()=>{if(folderPressTimer){clearTimeout(folderPressTimer);folderPressTimer=null}};
+    header.onpointerdown=()=>{folderLongPressed=false;clearFolderPress();folderPressTimer=setTimeout(()=>{folderLongPressed=true;if(confirm(`Delete folder "${folder}"? Ideas inside it will stay in your list without a folder.`))deleteFolder(folder)},650)};
+    header.onpointerup=header.onpointercancel=header.onpointerleave=clearFolderPress;
+    header.onclick=()=>{if(folderLongPressed){folderLongPressed=false;return}state.expandedFolders[folder]=!expanded;renderList()};
     group.appendChild(header);
     if(expanded){
       const inner=document.createElement("div");
@@ -72,7 +77,7 @@ function renderEditor(existing=null){
     folder.value=folders.includes(current)?current:"";
   }
   populateFolders();
-  function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;idea.folderName=(folder.value||"").trim();upsert(idea);state.selectedIdeaId=idea.id;forceEditorTitle()}
+  function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;const fv=(folder.value||"").trim();idea.folderName=(fv==="__add_new_folder__"||fv==="add_new_folder")?(idea.folderName||"").trim():fv;upsert(idea);state.selectedIdeaId=idea.id;forceEditorTitle()}
   function count(){let sk=idea.sketches[state.editorSketchIndex];document.getElementById("editorSketchCount").textContent=`${state.editorSketchIndex+1} / ${idea.sketches.length}${sk?.id===idea.mainSketchId?" · MAIN":""}`;forceEditorTitle()}
   function paper(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height)}
   function drawImageFit(dataUrl){if(!dataUrl){paper();count();return}let im=new Image();im.onload=()=>{paper();let sc=Math.min(canvas.width/im.width,canvas.height/im.height),w=im.width*sc,h=im.height*sc;ctx.drawImage(im,(canvas.width-w)/2,(canvas.height-h)/2,w,h);count()};im.src=dataUrl}
@@ -83,10 +88,11 @@ function renderEditor(existing=null){
   function undoSketch(){let previous=undoStack.pop();if(!previous)return;drawImageFit(previous);setTimeout(saveCanvas,50)}
   document.getElementById("ideaForm").oninput=fields;stage.onchange=fields;
   folder.onchange=()=>{
-    if(folder.value==="__add_new_folder__"){
+    const selectedFolderValue=(folder.value||"").trim();
+    if(selectedFolderValue==="__add_new_folder__"||selectedFolderValue==="add_new_folder"){
       const folderName=(prompt("Folder name")||"").trim();
-      if(folderName){idea.folderName=folderName;upsert(idea);state.expandedFolders[folderName]=true;populateFolders();folder.value=folderName}
-      else populateFolders();
+      if(folderName){idea.folderName=folderName;state.expandedFolders[folderName]=true;upsert(idea);populateFolders();folder.value=folderName;state.selectedIdeaId=idea.id;forceEditorTitle();return}
+      populateFolders();forceEditorTitle();return;
     }
     fields();
   };
@@ -174,5 +180,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=108").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=109").catch(()=>{}))}
 load();renderList();

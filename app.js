@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v1.05 PINK
+// Brain Fart Mobile Web v1.06 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -59,9 +59,19 @@ function renderEditor(existing=null){
   screen.querySelector('[data-action="newSketch"]').onclick=()=>{saveCanvas();addBlankSketch(idea);state.editorSketchIndex=idea.sketches.length-1;undoStack=[];loadCanvas();fields()};
   screen.querySelector('[data-action="undoSketch"]').onclick=()=>undoSketch();
   const cameraInput=document.getElementById("cameraInput"), photoLibraryInput=document.getElementById("photoLibraryInput");
+  function canvasIsBlank(){
+    try{
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      for(let i=0;i<pixels.length;i+=16){
+        const r=pixels[i],g=pixels[i+1],b=pixels[i+2],a=pixels[i+3];
+        if(a>0&&(r<245||g<245||b<245))return false;
+      }
+      return true;
+    }catch{return false}
+  }
   function currentSketchIsEmpty(){
     const sk=idea.sketches[state.editorSketchIndex];
-    return !!sk && sk.kind==="drawing" && !sk.dataUrl;
+    return !!sk && sk.kind==="drawing" && (!sk.dataUrl || canvasIsBlank());
   }
   function addPhotoFile(file,input){
     if(!file)return;
@@ -121,5 +131,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=105").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=106").catch(()=>{}))}
 load();renderList();

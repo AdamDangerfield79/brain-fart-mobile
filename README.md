@@ -5,4 +5,4 @@ Verified changes:
 - Version number moved from header to bottom footer.
 - List items now single tap/click to view/edit.
 - Existing data preserved: STORAGE_KEY remains brainFartPwaIdeas.v005.
-- Cache busting uses app.js?v=010 and styles.css?v=010.
+- Cache busting uses app.js?v=107 and styles.css?v=107.

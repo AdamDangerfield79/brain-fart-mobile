@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v1.06 PINK
+// Brain Fart Mobile Web v1.07 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -71,7 +71,12 @@ function renderEditor(existing=null){
   }
   function currentSketchIsEmpty(){
     const sk=idea.sketches[state.editorSketchIndex];
-    return !!sk && sk.kind==="drawing" && (!sk.dataUrl || canvasIsBlank());
+    if(!sk)return false;
+    // Treat starter sketches from older versions as empty too: some saved
+    // blank sketches have no kind, or have a white canvas dataUrl already.
+    const isPhoto=sk.kind==="photo";
+    if(isPhoto)return false;
+    return !sk.dataUrl || canvasIsBlank();
   }
   function addPhotoFile(file,input){
     if(!file)return;
@@ -131,5 +136,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=106").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=107").catch(()=>{}))}
 load();renderList();

@@ -1,7 +1,7 @@
-// Brain Fart Mobile Web v1.07 PINK
+// Brain Fart Mobile Web v1.08 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
-const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
+const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0,expandedFolders:{}};
 const screen=document.getElementById("screen");
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
 const load=()=>{try{state.ideas=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}catch{state.ideas=[]}};
@@ -12,17 +12,18 @@ const selected=()=>state.ideas.find(i=>i.id===state.selectedIdeaId)||null;
 const forceEditorTitle=()=>{const t=document.getElementById("editorTitle");if(t)t.textContent="IDEA"};
 function upsert(idea){let n=state.ideas.findIndex(i=>i.id===idea.id);if(n<0)state.ideas.push(idea);else state.ideas[n]=idea;save()}
 function removeIdea(id){state.ideas=state.ideas.filter(i=>i.id!==id);save();state.selectedIdeaId=state.ideas[0]?.id||null}
-function newIdea(){return{id:uid(),ideaName:"",description:"",materials:"",stage:"Idea",sketches:[],mainSketchId:null}}
+function newIdea(){return{id:uid(),ideaName:"",description:"",materials:"",stage:"Idea",folderName:"",sketches:[],mainSketchId:null}}
 function addBlankSketch(idea){let s={id:uid(),kind:"drawing",dataUrl:"",addedAt:new Date().toISOString()};idea.sketches.push(s);if(!idea.mainSketchId)idea.mainSketchId=s.id;return s}
 
 function renderList(){
   screen.replaceChildren(document.getElementById("listTemplate").content.cloneNode(true));
   screen.querySelector('[data-action="new"]').onclick=()=>renderEditor();
   const list=document.getElementById("ideasList");
-  if(!state.ideas.length){let e=document.createElement("div");e.className="soft-card";e.style.padding="22px";e.textContent="No ideas yet. Tap + to add one.";list.appendChild(e)}
+  if(!state.ideas.length){let e=document.createElement("div");e.className="soft-card";e.style.padding="22px";e.textContent="No ideas yet. Tap + to add one.";list.appendChild(e);return}
   const sorted=[...state.ideas].sort((a,b)=>(a.ideaName||"").localeCompare(b.ideaName||""));
   if(!state.selectedIdeaId&&sorted.length)state.selectedIdeaId=sorted[0].id;
-  for(const idea of sorted){
+  const folders=[...new Set(sorted.map(i=>(i.folderName||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  function appendIdeaRow(idea,parent=list){
     const row=document.getElementById("rowTemplate").content.firstElementChild.cloneNode(true);
     if(idea.id===state.selectedIdeaId)row.classList.add("selected");
     const sk=mainSketch(idea),img=row.querySelector(".thumb img"),sp=row.querySelector(".thumb span");
@@ -31,18 +32,47 @@ function renderList(){
     row.querySelector("p").textContent=idea.description||"";
     row.querySelector("small").textContent=idea.stage||"Idea";
     row.onclick=()=>renderEditor(idea);
-    list.appendChild(row)
+    parent.appendChild(row)
   }
+  for(const folder of folders){
+    const folderIdeas=sorted.filter(i=>(i.folderName||"").trim()===folder);
+    const group=document.createElement("section");
+    group.className="folder-group soft-card";
+    const header=document.createElement("button");
+    header.type="button";
+    header.className="folder-header";
+    const expanded=!!state.expandedFolders[folder];
+    header.innerHTML=`<span>${folder}</span><small>${folderIdeas.length} idea${folderIdeas.length===1?"":"s"}</small><strong>${expanded?"−":"+"}</strong>`;
+    header.onclick=()=>{state.expandedFolders[folder]=!expanded;renderList()};
+    group.appendChild(header);
+    if(expanded){
+      const inner=document.createElement("div");
+      inner.className="folder-ideas";
+      folderIdeas.forEach(i=>appendIdeaRow(i,inner));
+      group.appendChild(inner);
+    }
+    list.appendChild(group);
+  }
+  sorted.filter(i=>!(i.folderName||"").trim()).forEach(i=>appendIdeaRow(i));
 }
 
 
 function renderEditor(existing=null){
   state.editingIdea=existing?clone(existing):newIdea();state.editorSketchIndex=0;const idea=state.editingIdea;if(!idea.sketches.length)addBlankSketch(idea);
   screen.replaceChildren(document.getElementById("editorTemplate").content.cloneNode(true));forceEditorTitle();
-  const name=document.getElementById("ideaName"),desc=document.getElementById("description"),mat=document.getElementById("materials"),stage=document.getElementById("stage"),canvas=document.getElementById("sketchCanvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+  const name=document.getElementById("ideaName"),desc=document.getElementById("description"),mat=document.getElementById("materials"),stage=document.getElementById("stage"),folder=document.getElementById("folder"),canvas=document.getElementById("sketchCanvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
   let undoStack=[];
   name.value=idea.ideaName||"";desc.value=idea.description||"";mat.value=idea.materials||"";stage.value=idea.stage||"Idea";
-  function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;upsert(idea);state.selectedIdeaId=idea.id;forceEditorTitle()}
+  function populateFolders(){
+    const current=(idea.folderName||"").trim();
+    const folders=[...new Set(state.ideas.map(i=>(i.folderName||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    folder.innerHTML='<option value="">No folder</option>';
+    folders.forEach(f=>{const o=document.createElement("option");o.value=f;o.textContent=f;folder.appendChild(o)});
+    const add=document.createElement("option");add.value="__add_new_folder__";add.textContent="Add new folder";folder.appendChild(add);
+    folder.value=folders.includes(current)?current:"";
+  }
+  populateFolders();
+  function fields(){idea.ideaName=name.value.trim();idea.description=desc.value.trim();idea.materials=mat.value.trim();idea.stage=stage.value;idea.folderName=(folder.value||"").trim();upsert(idea);state.selectedIdeaId=idea.id;forceEditorTitle()}
   function count(){let sk=idea.sketches[state.editorSketchIndex];document.getElementById("editorSketchCount").textContent=`${state.editorSketchIndex+1} / ${idea.sketches.length}${sk?.id===idea.mainSketchId?" · MAIN":""}`;forceEditorTitle()}
   function paper(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height)}
   function drawImageFit(dataUrl){if(!dataUrl){paper();count();return}let im=new Image();im.onload=()=>{paper();let sc=Math.min(canvas.width/im.width,canvas.height/im.height),w=im.width*sc,h=im.height*sc;ctx.drawImage(im,(canvas.width-w)/2,(canvas.height-h)/2,w,h);count()};im.src=dataUrl}
@@ -52,6 +82,14 @@ function renderEditor(existing=null){
   function snapshot(){try{undoStack.push(canvas.toDataURL("image/png"));if(undoStack.length>25)undoStack.shift()}catch{}}
   function undoSketch(){let previous=undoStack.pop();if(!previous)return;drawImageFit(previous);setTimeout(saveCanvas,50)}
   document.getElementById("ideaForm").oninput=fields;stage.onchange=fields;
+  folder.onchange=()=>{
+    if(folder.value==="__add_new_folder__"){
+      const folderName=(prompt("Folder name")||"").trim();
+      if(folderName){idea.folderName=folderName;upsert(idea);state.expandedFolders[folderName]=true;populateFolders();folder.value=folderName}
+      else populateFolders();
+    }
+    fields();
+  };
   screen.querySelector('[data-action="back"]').onclick=()=>{try{saveCanvas()}catch(e){console.warn('Could not save current sketch before leaving',e)}renderList()};
   screen.querySelector('[data-action="delete"]').onclick=()=>{if(confirm("Delete this idea?")){removeIdea(idea.id);renderList()}};
   screen.querySelector('[data-action="prevSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex-1+idea.sketches.length)%idea.sketches.length;undoStack=[];loadCanvas()};
@@ -136,5 +174,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=107").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=108").catch(()=>{}))}
 load();renderList();

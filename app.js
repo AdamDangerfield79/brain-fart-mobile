@@ -1,4 +1,4 @@
-// Brain Fart Mobile Web v1.04 PINK
+// Brain Fart Mobile Web v1.05 PINK
 // STORAGE KEY KEPT AS v005 TO PRESERVE EXISTING DATA.
 const STORAGE_KEY="brainFartPwaIdeas.v005";
 const state={ideas:[],selectedIdeaId:null,listSketchIndex:0,editingIdea:null,editorSketchIndex:0};
@@ -52,26 +52,48 @@ function renderEditor(existing=null){
   function snapshot(){try{undoStack.push(canvas.toDataURL("image/png"));if(undoStack.length>25)undoStack.shift()}catch{}}
   function undoSketch(){let previous=undoStack.pop();if(!previous)return;drawImageFit(previous);setTimeout(saveCanvas,50)}
   document.getElementById("ideaForm").oninput=fields;stage.onchange=fields;
-  screen.querySelector('[data-action="back"]').onclick=()=>{saveCanvas();renderList()};
+  screen.querySelector('[data-action="back"]').onclick=()=>{try{saveCanvas()}catch(e){console.warn('Could not save current sketch before leaving',e)}renderList()};
   screen.querySelector('[data-action="delete"]').onclick=()=>{if(confirm("Delete this idea?")){removeIdea(idea.id);renderList()}};
   screen.querySelector('[data-action="prevSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex-1+idea.sketches.length)%idea.sketches.length;undoStack=[];loadCanvas()};
   screen.querySelector('[data-action="nextSketch"]').onclick=()=>{saveCanvas();state.editorSketchIndex=(state.editorSketchIndex+1)%idea.sketches.length;undoStack=[];loadCanvas()};
   screen.querySelector('[data-action="newSketch"]').onclick=()=>{saveCanvas();addBlankSketch(idea);state.editorSketchIndex=idea.sketches.length-1;undoStack=[];loadCanvas();fields()};
   screen.querySelector('[data-action="undoSketch"]').onclick=()=>undoSketch();
   const cameraInput=document.getElementById("cameraInput"), photoLibraryInput=document.getElementById("photoLibraryInput");
+  function currentSketchIsEmpty(){
+    const sk=idea.sketches[state.editorSketchIndex];
+    return !!sk && sk.kind==="drawing" && !sk.dataUrl;
+  }
   function addPhotoFile(file,input){
     if(!file)return;
+    const replaceCurrent=currentSketchIsEmpty();
+    if(!replaceCurrent)saveCanvas();
     const reader=new FileReader();
     reader.onload=evt=>{
-      saveCanvas();
-      let sk={id:uid(),kind:"photo",dataUrl:evt.target.result,addedAt:new Date().toISOString()};
-      idea.sketches.push(sk);
-      state.editorSketchIndex=idea.sketches.length-1;
-      if(!idea.mainSketchId)idea.mainSketchId=sk.id;
-      undoStack=[];
-      loadCanvas();
-      fields();
-      input.value="";
+      const im=new Image();
+      im.onload=()=>{
+        const maxSide=1400;
+        const scale=Math.min(1,maxSide/Math.max(im.width,im.height));
+        const w=Math.max(1,Math.round(im.width*scale));
+        const h=Math.max(1,Math.round(im.height*scale));
+        const c=document.createElement("canvas");
+        c.width=w;c.height=h;
+        c.getContext("2d").drawImage(im,0,0,w,h);
+        const dataUrl=c.toDataURL("image/jpeg",0.86);
+        let sk={id:uid(),kind:"photo",dataUrl,addedAt:new Date().toISOString()};
+        if(replaceCurrent){
+          sk.id=idea.sketches[state.editorSketchIndex].id;
+          idea.sketches[state.editorSketchIndex]=sk;
+        }else{
+          idea.sketches.push(sk);
+          state.editorSketchIndex=idea.sketches.length-1;
+        }
+        if(!idea.mainSketchId||replaceCurrent)idea.mainSketchId=sk.id;
+        undoStack=[];
+        loadCanvas();
+        fields();
+        input.value="";
+      };
+      im.src=evt.target.result;
     };
     reader.readAsDataURL(file);
   }
@@ -99,5 +121,5 @@ function renderEditor(existing=null){
   canvas.onpointerup=canvas.onpointercancel=canvas.onpointerleave=()=>{if(drawing){drawing=false;soon()}};
   requestAnimationFrame(resize)
 }
-if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=104").catch(()=>{}))}
+if("serviceWorker"in navigator){addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=105").catch(()=>{}))}
 load();renderList();
